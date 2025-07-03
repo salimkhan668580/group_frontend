@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import userSlice from './userLoginSlice'
 import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
+import { combineReducers } from '@reduxjs/toolkit'
 
 
 const persistConfig = {

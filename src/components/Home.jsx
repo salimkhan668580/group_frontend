@@ -1,6 +1,38 @@
+import axios from 'axios'
 import React from 'react'
+import { useEffect } from 'react'
+import { useState } from 'react'
+import { useSelector } from 'react-redux'
 
 function Home() {
+    const [userList,setUserList]=useState([])
+    const userLogin= useSelector((state)=>state.userLogin.value)
+
+    useEffect(()=>{ 
+        getUserList()
+    },[])
+
+const  getUserList=async()=>{
+
+    try {
+        
+        const res= await axios.get(`http://localhost:8080/api/message/get-user`)
+        if(res.data.success){
+            
+            setUserList(res.data.data)
+        }
+        
+        
+    } catch (error) {
+        console.log(error)
+        
+    }
+
+    }
+   
+    if(!userLogin) return <Login/>
+    
+    
   return (
     <>
     <div className="h-screen w-full flex">
@@ -31,50 +63,25 @@ function Home() {
 
   {/* Users List */}
   <ul>
-    <li className="flex items-center gap-3 p-4 hover:bg-gray-100 cursor-pointer border-b">
+    {userList.map((item)=>(
+
+    <li key={item._id} className="flex items-center gap-3 p-4 hover:bg-gray-100 cursor-pointer border-b">
       <img
-        src="https://i.pravatar.cc/150?img=1"
+        src={item.image}
         alt="User 1"
         className="w-12 h-12 rounded-full object-cover"
       />
       <div className="flex-1">
         <div className="flex justify-between items-center">
-          <h4 className="font-medium text-gray-800">Salim Khan</h4>
+          <h4 className="font-medium text-gray-800">{item.name}</h4>
           <span className="text-xs text-gray-500">2:45 PM</span>
         </div>
-        <p className="text-sm text-gray-600 truncate">Last message from user goes here...</p>
+        <p className="text-sm text-gray-600 truncate">lastmsg</p>
       </div>
     </li>
+    ))}
 
-    <li className="flex items-center gap-3 p-4 hover:bg-gray-100 cursor-pointer border-b">
-      <img
-        src="https://i.pravatar.cc/150?img=2"
-        alt="User 2"
-        className="w-12 h-12 rounded-full object-cover"
-      />
-      <div className="flex-1">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium text-gray-800">Ravi Sharma</h4>
-          <span className="text-xs text-gray-500">1:30 PM</span>
-        </div>
-        <p className="text-sm text-gray-600 truncate">Hey! How are you?</p>
-      </div>
-    </li>
-
-    <li className="flex items-center gap-3 p-4 hover:bg-gray-100 cursor-pointer border-b">
-      <img
-        src="https://i.pravatar.cc/150?img=3"
-        alt="User 3"
-        className="w-12 h-12 rounded-full object-cover"
-      />
-      <div className="flex-1">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium text-gray-800">Priya Verma</h4>
-          <span className="text-xs text-gray-500">Yesterday</span>
-        </div>
-        <p className="text-sm text-gray-600 truncate">I'll send the files soon.</p>
-      </div>
-    </li>
+ 
   </ul>
 </div>
 
