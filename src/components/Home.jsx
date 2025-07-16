@@ -7,6 +7,8 @@ import { toast } from 'react-toastify'
 import socketContext from './context/socketConfig'
 import { useContext } from 'react'
 import { useRef } from 'react'
+import { useCallback } from 'react';
+import CreateGroupModal from './CreateGroupModal'
 
 
 function Home() {
@@ -16,8 +18,14 @@ function Home() {
     const [selectedUser,setSelectedUser]=useState({})
     const [messageList,setMessageList]=useState([])
     const [typeMessage,setTypeMessage]=useState("")
+    const [modalOpen,setModalOpen]=useState(false)
   const socket = useContext(socketContext);
   const messagesEndRef = useRef(null);
+  const allUsers=[
+  { _id: 'user1', name: 'John Doe' },
+  { _id: 'user2', name: 'Alice Smith' },
+  { _id: 'user3', name: 'Bob Lee' }
+]
 
   async function getMessage(userID){
     
@@ -44,18 +52,34 @@ function Home() {
       
     }
 
-    const roomJoinHandler=async(user)=>{
-        try {
-          const payload= {
-            room: `${userLogin.user._id}-${user._id}`
-          }
-          socket.emit("join_room",payload);
+    // const roomJoinHandler=async(user)=>{
+    //     try {
+    //       const payload= {
+    //         room: `${userLogin.user._id}-${user._id}`
+    //       }
+    //       socket.emit("join_room",payload);
 
            
-        } catch (error) {
-            toast.error(error)
-        }
+    //     } catch (error) {
+    //         toast.error(error)
+    //     }
+    // }
+
+    const roomJoinHandler = useCallback(async (user) => {
+    try {
+        const payload = {
+            room: `${userLogin.user._id}-${user._id}`
+        };
+        socket.emit("join_room", payload);
+    } catch (error) {
+        toast.error(error);
     }
+}, [socket, userLogin.user._id]);
+ const [open, setOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setOpen(!open);
+  };
 
   
  useEffect(() => {
@@ -112,7 +136,8 @@ const  getUserList=async()=>{
 
     try {
         
-        const res= await axios.get(`http://localhost:8080/api/message/get-user`)
+        const res= await axios.get(`http://localhost:8080/api/message/get-user`,{
+            withCredentials: true})
         if(res.data.success){
             
             setUserList(res.data.data)
@@ -175,7 +200,18 @@ const  getUserList=async()=>{
 <div className="w-[30%] rounded bg-white border-r border-gray-300 overflow-y-auto">
   {/* Header with User Title + Avatar */}
   <div className="p-4 border-b flex items-center justify-between">
-    <h2 className="text-lg font-semibold">{userLogin.user.name}</h2>
+    <span className='rotate-90 cursor-pointer'  onClick={toggleDropdown}>. . .</span>
+    {open && (
+   <div className="absolute left-0 top-12  mt-2 w-40 bg-white rounded-lg shadow-lg  z-50">
+        <ul className="py-2 text-sm text-gray-700">
+          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => setModalOpen(true)}>👥 Create Group</li>
+          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">👤 Profile</li>
+          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">⚙️ Settings</li>
+          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">🚪 Logout</li>
+        </ul>
+      </div>
+        )}
+    {/* <h2 className="text-lg font-semibold">{userLogin.user.name}</h2> */}
 
     {/* Avatar with dropdown */}
     <div className="relative group cursor-pointer">
@@ -185,14 +221,8 @@ const  getUserList=async()=>{
         className="w-10 h-10 rounded-full border"
       />
 
-      {/* Dropdown Menu */}
-      <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg hidden group-hover:block z-50">
-        <ul className="py-2 text-sm text-gray-700">
-          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">👤 Profile</li>
-          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">⚙️ Settings</li>
-          <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">🚪 Logout</li>
-        </ul>
-      </div>
+
+
     </div>
   </div>
 
@@ -224,6 +254,8 @@ const  getUserList=async()=>{
 
 {/* ===================Right side chat================== */}
 
+{
+  Object.keys(singleUserData).length>0?
 <div className="w-[70%] flex rounded flex-col bg-gray-100">
   {/* Chat Header */}
   <div className="p-4 bg-white border-b font-semibold flex items-center gap-3">
@@ -271,12 +303,39 @@ const  getUserList=async()=>{
         onChange={(e) => setTypeMessage(e.target.value)}
         className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
+    
+
       <button onClick={sendMessageHandler} className="bg-blue-600 coursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700">
         Send
       </button>
+   
     </div>
   </div>
 </div>
+:
+<div className="w-[70%] flex rounded flex-col bg-gray-100">
+  {/* Chat Header */}
+  <div className="p-4 bg-white border-b font-semibold flex items-center gap-3">
+   
+    <span>Select user</span>
+  </div>
+
+<div className="flex-1 p-4 flex flex-col space-y-3 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/brushed-alum-dark.png')] bg-repeat">
+
+
+  
+  
+  <div className='flex justify-center items-center h-[400px]'>No converation found</div>
+
+
+
+
+  </div>
+
+  
+
+</div>
+}
 
 
     
@@ -284,6 +343,12 @@ const  getUserList=async()=>{
 
 </div>
 
+
+<CreateGroupModal
+  isOpen={modalOpen}
+  onClose={() => setModalOpen(false)}
+  users={userList}
+/>
     </>
   )
 }

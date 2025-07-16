@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { ClipLoader } from "react-spinners";
 
 function Login() {
+  axios.defaults.withCredentials = true;
     const nevigate=useNavigate()
     const dispatch=useDispatch()
     const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +32,11 @@ function Login() {
             
              e.preventDefault()
             setLoading(true)
-           const res= await axios.post("http://localhost:8080/api/auth/login",loginData)
+           const res= await axios.post("http://localhost:8080/api/auth/login",loginData,
+            {
+              withCredentials: true
+            }
+           )
            if(res.data.success){
 
                dispatch(setLoginData(res.data.data))
